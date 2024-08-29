@@ -29,10 +29,10 @@ def postgres_db_resource(context):
 def sqlserver_db_resource(context):
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=10.10.1.199;"
-        "DATABASE=PPA;"
-        "UID=noor.shuhailey;"
-        "PWD=Lzs.user831;"
+        "SERVER=192.168.68.112;"
+        "DATABASE=Test;"
+        "UID=sa;"
+        "PWD=123qwe;"
         "Trust_Connection=yes;"
     )
     try:
