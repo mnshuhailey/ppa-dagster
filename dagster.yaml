@@ -1,3 +1,0 @@
-workspace:
-  load_from:
-    - python_module: "ppa_migration.repository"
