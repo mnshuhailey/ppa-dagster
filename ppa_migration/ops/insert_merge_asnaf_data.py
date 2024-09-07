@@ -26,23 +26,27 @@ def insert_merge_asnaf_data(context, transformed_data):
     
     error_log = []
     
+    # Execute the merge query
     for row in transformed_data:
         try:
             cursor_sql.execute(merge_data_query, row)
-            
-            # Retrieve metadata after executing the query
-            field_names = [desc[0] for desc in cursor_sql.description] if cursor_sql.description else ["Unknown"]
-            
         except Exception as e:
-            # Ensure we handle cases where field names are unavailable or lengths do not match
-            if not cursor_sql.description:
-                field_names = ["Unknown"]
-            else:
-                field_names = [desc[0] for desc in cursor_sql.description]
-            
-            context.log.info(f"Length of field_names: {len(field_names)}, Length of row: {len(row)}")
+            context.log.error(f"Error executing query for row: {row}. Error: {e}")
+            error_log.append(f"Error executing query for row: {row}. Error: {e}")
+            continue  # Continue to the next row
 
-            # Adjust error handling to avoid IndexError
+    # After executing all the data operations, retrieve field names if needed
+    cursor_sql.execute("SELECT TOP 1 * FROM <YourTableName>")  # Replace <YourTableName> with your actual table name
+    field_names = [desc[0] for desc in cursor_sql.description] if cursor_sql.description else ["Unknown"]
+    
+    # Log field names
+    context.log.info(f"Retrieved field names: {field_names}")
+    
+    # Handle errors if any
+    for row in transformed_data:
+        try:
+            cursor_sql.execute(merge_data_query, row)
+        except Exception as e:
             error_details = {field_names[i] if i < len(field_names) else f"Field_{i}": row[i] for i in range(len(row))}
             error_message = f"Error inserting or merging data for row: {error_details}, Error: {e}"
             context.log.error(error_message)
@@ -54,13 +58,13 @@ def insert_merge_asnaf_data(context, transformed_data):
         sqlserver_conn.commit()
         context.log.info("Data transfer to SQL Server completed successfully.")
     else:
-        context.log.warning(f"Data transfer completed with errors. Check the log for details.")
+        context.log.warning("Data transfer completed with errors. Check the log for details.")
 
     cursor_sql.close()
     sqlserver_conn.close()
 
+    # Write errors to a log file if any
     if error_log:
-        # Generate the error log file name with the current datetime
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
         error_log_file_name = f"error_insert_migrate_data_{current_datetime}.txt"
         error_log_path = os.path.join(base_dir, '../logs', error_log_file_name)

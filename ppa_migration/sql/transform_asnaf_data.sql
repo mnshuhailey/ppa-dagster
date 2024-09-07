@@ -1,14 +1,13 @@
--- Fetch the data and transform here
 SELECT
-    (_airbyte_data->>'OwnerId')::text as SnapshotID,
+    (_airbyte_data->>'OwningUser')::text as SnapshotID,
     (_airbyte_data->>'vwlzs_asnafId')::text as AsnafID,
     (_airbyte_data->>'vwlzs_AsnafRegistrationIdName')::text as AsnafName,
-    (_airbyte_data->>'vwlzs_CreatedBy')::uuid as Createdby,
-    TO_CHAR((_airbyte_data->>'vwlzs_CreatedOn')::timestamp, 'YYYY-MM-DD HH24:MI:SS.MS') as DateCreated,  -- Converted to SQL Server compatible format
+    (_airbyte_data->>'vwlzs_CreatedBy')::text as Createdby,
+    TO_CHAR((_airbyte_data->>'vwlzs_CreatedOn')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as DateCreated,
     NULL::int as asnafStatus,
     (_airbyte_data->>'vwlzs_name')::text as Name,
     (_airbyte_data->>'vwlzs_IdentificationType')::int as IdentificationType,
-    TO_CHAR((_airbyte_data->>'vwlzs_DateofBirth')::timestamp, 'YYYY-MM-DD HH24:MI:SS.MS') as DateofBirth,  -- Converted to SQL Server compatible format
+    TO_CHAR((_airbyte_data->>'vwlzs_DateofBirth')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as DateofBirth,
     (_airbyte_data->>'vwlzs_Age')::int as Age,
     (_airbyte_data->>'vwlzs_MaritalStatus')::int as MaritalStatus,
     NULL::text as Working,
@@ -50,7 +49,7 @@ SELECT
     NULL::int as RegistrationType,
     NULL::text as ExitAsnafRemark,
     NULL::text as ExitAsnafReason,
-    TO_CHAR((_airbyte_data->>'vwlzs_DeceasedDate')::timestamp, 'YYYY-MM-DD HH24:MI:SS.MS') as DeceasedDate,  -- Converted to SQL Server compatible format
+    TO_CHAR((_airbyte_data->>'vwlzs_DeceasedDate')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as DeceasedDate,
     NULL::text as recipientType,
     NULL::text as recipient,
     (_airbyte_data->>'vwlzs_District')::text as District,
@@ -104,7 +103,7 @@ SELECT
     NULL::text as amilID,
     NULL::text as AsnafCategory,
     (_airbyte_data->>'vwlzs_ModifiedBy')::uuid as ModifiedBy,
-    TO_CHAR((_airbyte_data->>'vwlzs_ModifiedOn')::timestamp, 'YYYY-MM-DD HH24:MI:SS.MS') as ModifiedOn,  -- Converted to SQL Server compatible format
+    TO_CHAR((_airbyte_data->>'vwlzs_ModifiedOn')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') as ModifiedOn,  -- ISO 8601 format
     NULL::int as hadkifayahRate,
     NULL::text as hadkifayah,
     (_airbyte_data->>'vwlzs_SAPCode')::text as SAPCode,
@@ -117,5 +116,5 @@ SELECT
          ELSE NULL END as Blacklisted,
     NULL::timestamp as TarikhMulaKFAMKBAM
 FROM airbyte_internal.dbo_raw__stream_vwlzs_asnaf
-ORDER BY (_airbyte_data->>'vwlzs_CreatedOn')::timestamp DESC;
-
+ORDER BY (_airbyte_data->>'vwlzs_CreatedOn')::timestamp DESC
+LIMIT 30000;
