@@ -1,6 +1,21 @@
 MERGE INTO dbo.asnaf_transformed_v3 AS target
 USING (VALUES 
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     ?, LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
+     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)))
 ) AS source (
     SnapshotID, AsnafID, AsnafName, Createdby, DateCreated, asnafStatus, Name, IdentificationType, 
     DateofBirth, Age, MaritalStatus, Working, Healthlevel, PhysicalCondition, Bank, OtherName, 

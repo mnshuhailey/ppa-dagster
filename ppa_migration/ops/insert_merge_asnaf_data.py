@@ -29,10 +29,21 @@ def insert_merge_asnaf_data(context, transformed_data):
     for row in transformed_data:
         try:
             cursor_sql.execute(merge_data_query, row)
-        except Exception as e:
-            # Capture the detailed error message with field names and data
+            
+            # Retrieve metadata after executing the query
             field_names = [desc[0] for desc in cursor_sql.description] if cursor_sql.description else ["Unknown"]
-            error_details = {field_names[i]: row[i] for i in range(len(row))}
+            
+        except Exception as e:
+            # Ensure we handle cases where field names are unavailable or lengths do not match
+            if not cursor_sql.description:
+                field_names = ["Unknown"]
+            else:
+                field_names = [desc[0] for desc in cursor_sql.description]
+            
+            context.log.info(f"Length of field_names: {len(field_names)}, Length of row: {len(row)}")
+
+            # Adjust error handling to avoid IndexError
+            error_details = {field_names[i] if i < len(field_names) else f"Field_{i}": row[i] for i in range(len(row))}
             error_message = f"Error inserting or merging data for row: {error_details}, Error: {e}"
             context.log.error(error_message)
             error_log.append(error_message)
@@ -51,7 +62,7 @@ def insert_merge_asnaf_data(context, transformed_data):
     if error_log:
         # Generate the error log file name with the current datetime
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
-        error_log_file_name = f"error_insert_migrate_data_to_sqlserver_{current_datetime}.txt"
+        error_log_file_name = f"error_insert_migrate_data_{current_datetime}.txt"
         error_log_path = os.path.join(base_dir, '../logs', error_log_file_name)
         
         # Ensure the logs directory exists

@@ -5,7 +5,7 @@ CREATE TABLE dbo.asnaf_transformed_v3 (
     AsnafID UNIQUEIDENTIFIER PRIMARY KEY,
     AsnafName NVARCHAR(255),
     Createdby UNIQUEIDENTIFIER,
-    DateCreated DATETIME DEFAULT (GETDATE()),
+    DateCreated DATETIME,
     asnafStatus INT,
     Name NVARCHAR(255),
     IdentificationType INT,
