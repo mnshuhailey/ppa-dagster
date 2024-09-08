@@ -1,44 +1,30 @@
-MERGE INTO dbo.asnaf_transformed_v3 AS target
-USING (VALUES 
-    (LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     ?, LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), 
-     LTRIM(RTRIM(?)), ?, LTRIM(RTRIM(?)), LTRIM(RTRIM(?)), LTRIM(RTRIM(?)))
-) AS source (
+MERGE INTO dbo.asnaf_transformed_v4 AS target
+USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))
+AS source (
     SnapshotID, AsnafID, AsnafName, Createdby, DateCreated, asnafStatus, Name, IdentificationType, 
     DateofBirth, Age, MaritalStatus, Working, Healthlevel, PhysicalCondition, Bank, OtherName, 
     IdentificationNumIC, BirthLocation, Gender, IfMuallafDateInIslam, Salary, Remarks, ModeofPayment, 
     BankAccountNum, ResidentialStatus, PeriodStayInSelangorYear, Street1, Street2, Street3, City, 
     Postcode, Branch, BranchID, State, Country, TelephoneNoHome, TelephoneNoOffice, MobilePhoneNum, 
     Emel, Schooling, Education, HighestEducation, DateofApplication, RegistrationPortalId, RegistrationStatus, 
-    RegistrationType, ExitAsnafRemark, ExitAsnafReason, DeceasedDate, recipientType, recipient, District, 
-    DistrictID, Mosque, MosqueID, JenisPendaftaran, Status, Statecode, StatusAsnaf, PostJson, ReturnJson, 
-    CRMAsnafID, PINo, RegType, CRMReviewID, CRMRegistrationID, Relationship, MasihTanggungan, recipientTypeAsnaf, 
-    recipientTypeOrganization, Ename, Eposition, Eoffice, Erelation, reviewRemarks, resetBy, healthCronic, OKU_Physical, 
-    OKU_Type, OKU_Cause, OKU_Cause_Level, Uzur_Condition, carecosts, monthlytotal, sector, remarkwork, vehicle, 
-    vehicleothers, namamajikan, fishermenpoultryagricultural, sewinghandicraftscookingnursery, service, othersskill, 
-    othersskillremarks, carpentry, business, portalID, regstatus, kadarsewa, amilID, AsnafCategory, ModifiedBy, 
-    ModifiedOn, hadkifayahRate, hadkifayah, SAPCode, SAPRemarks, SAPIndicator, Blacklisted, TarikhMulaKFAMKBAM
+    RegistrationType, ExitAsnafRemark, ExitAsnafReason, ExitDate,
+    DeceasedDate, recipientType, recipient, District, DistrictID, Mosque, MosqueID, JenisPendaftaran, 
+    Status, Statecode, StatusAsnaf, PostJson, ReturnJson, CRMAsnafID, PINo, RegType, CRMReviewID, 
+    CRMRegistrationID, Relationship, MasihTanggungan, recipientTypeAsnaf, recipientTypeOrganization, 
+    Ename, Eposition, Eoffice, Erelation, reviewRemarks, resetBy, healthCronic, OKU_Physical, 
+    OKU_Type, OKU_Cause, OKU_Cause_Level, Uzur_Condition, carecosts, monthlytotal, sector, remarkwork, 
+    vehicle, vehicleothers, namamajikan, fishermenpoultryagricultural, sewinghandicraftscookingnursery, 
+    service, othersskill, othersskillremarks, carpentry, business, portalID, regstatus, kadarsewa, amilID, 
+    AsnafCategory, ModifiedBy, ModifiedOn, hadkifayahRate, hadkifayah, SAPCode, SAPRemarks, SAPIndicator, 
+    Blacklisted, TarikhMulaKFAMKBAM
 )
 ON target.AsnafID = source.AsnafID
 WHEN MATCHED THEN
     UPDATE SET
+        target.SnapshotID = source.SnapshotID,
         target.AsnafName = source.AsnafName,
         target.Emel = source.Emel,
         target.Age = source.Age,
-        target.SnapshotID = source.SnapshotID,
         target.Createdby = source.Createdby,
         target.DateCreated = source.DateCreated,
         target.asnafStatus = source.asnafStatus,
@@ -82,6 +68,7 @@ WHEN MATCHED THEN
         target.RegistrationType = source.RegistrationType,
         target.ExitAsnafRemark = source.ExitAsnafRemark,
         target.ExitAsnafReason = source.ExitAsnafReason,
+        target.ExitDate = source.ExitDate,
         target.DeceasedDate = source.DeceasedDate,
         target.recipientType = source.recipientType,
         target.recipient = source.recipient,
@@ -152,14 +139,16 @@ WHEN NOT MATCHED THEN
         BankAccountNum, ResidentialStatus, PeriodStayInSelangorYear, Street1, Street2, Street3, City, 
         Postcode, Branch, BranchID, State, Country, TelephoneNoHome, TelephoneNoOffice, MobilePhoneNum, 
         Emel, Schooling, Education, HighestEducation, DateofApplication, RegistrationPortalId, RegistrationStatus, 
-        RegistrationType, ExitAsnafRemark, ExitAsnafReason, DeceasedDate, recipientType, recipient, District, 
-        DistrictID, Mosque, MosqueID, JenisPendaftaran, Status, Statecode, StatusAsnaf, PostJson, ReturnJson, 
-        CRMAsnafID, PINo, RegType, CRMReviewID, CRMRegistrationID, Relationship, MasihTanggungan, recipientTypeAsnaf, 
-        recipientTypeOrganization, Ename, Eposition, Eoffice, Erelation, reviewRemarks, resetBy, healthCronic, OKU_Physical, 
-        OKU_Type, OKU_Cause, OKU_Cause_Level, Uzur_Condition, carecosts, monthlytotal, sector, remarkwork, vehicle, 
-        vehicleothers, namamajikan, fishermenpoultryagricultural, sewinghandicraftscookingnursery, service, othersskill, 
-        othersskillremarks, carpentry, business, portalID, regstatus, kadarsewa, amilID, AsnafCategory, ModifiedBy, 
-        ModifiedOn, hadkifayahRate, hadkifayah, SAPCode, SAPRemarks, SAPIndicator, Blacklisted, TarikhMulaKFAMKBAM
+        RegistrationType, ExitAsnafRemark, ExitAsnafReason, ExitDate,
+        DeceasedDate, recipientType, recipient, District, DistrictID, Mosque, MosqueID, JenisPendaftaran, 
+        Status, Statecode, StatusAsnaf, PostJson, ReturnJson, CRMAsnafID, PINo, RegType, CRMReviewID, 
+        CRMRegistrationID, Relationship, MasihTanggungan, recipientTypeAsnaf, recipientTypeOrganization, 
+        Ename, Eposition, Eoffice, Erelation, reviewRemarks, resetBy, healthCronic, OKU_Physical, 
+        OKU_Type, OKU_Cause, OKU_Cause_Level, Uzur_Condition, carecosts, monthlytotal, sector, remarkwork, 
+        vehicle, vehicleothers, namamajikan, fishermenpoultryagricultural, sewinghandicraftscookingnursery, 
+        service, othersskill, othersskillremarks, carpentry, business, portalID, regstatus, kadarsewa, amilID, 
+        AsnafCategory, ModifiedBy, ModifiedOn, hadkifayahRate, hadkifayah, SAPCode, SAPRemarks, SAPIndicator, 
+        Blacklisted, TarikhMulaKFAMKBAM
     )
     VALUES (
         source.SnapshotID, source.AsnafID, source.AsnafName, source.Createdby, source.DateCreated, source.asnafStatus, 
@@ -170,17 +159,16 @@ WHEN NOT MATCHED THEN
         source.Street3, source.City, source.Postcode, source.Branch, source.BranchID, source.State, source.Country, 
         source.TelephoneNoHome, source.TelephoneNoOffice, source.MobilePhoneNum, source.Emel, source.Schooling, 
         source.Education, source.HighestEducation, source.DateofApplication, source.RegistrationPortalId, source.RegistrationStatus, 
-        source.RegistrationType, source.ExitAsnafRemark, source.ExitAsnafReason, source.DeceasedDate, source.recipientType, 
-        source.recipient, source.District, source.DistrictID, source.Mosque, source.MosqueID, source.JenisPendaftaran, 
-        source.Status, source.Statecode, source.StatusAsnaf, source.PostJson, source.ReturnJson, source.CRMAsnafID, 
-        source.PINo, source.RegType, source.CRMReviewID, source.CRMRegistrationID, source.Relationship, source.MasihTanggungan, 
-        source.recipientTypeAsnaf, source.recipientTypeOrganization, source.Ename, source.Eposition, source.Eoffice, 
-        source.Erelation, source.reviewRemarks, source.resetBy, source.healthCronic, source.OKU_Physical, source.OKU_Type, 
-        source.OKU_Cause, source.OKU_Cause_Level, source.Uzur_Condition, source.carecosts, source.monthlytotal, source.sector, 
-        source.remarkwork, source.vehicle, source.vehicleothers, source.namamajikan, source.fishermenpoultryagricultural, 
-        source.sewinghandicraftscookingnursery, source.service, source.othersskill, source.othersskillremarks, source.carpentry, 
-        source.business, source.portalID, source.regstatus, source.kadarsewa, source.amilID, source.AsnafCategory, 
-        source.ModifiedBy, source.ModifiedOn, source.hadkifayahRate, source.hadkifayah, source.SAPCode, source.SAPRemarks, 
-        source.SAPIndicator, source.Blacklisted, source.TarikhMulaKFAMKBAM
+        source.RegistrationType, source.ExitAsnafRemark, source.ExitAsnafReason, source.ExitDate, -- Added missing column
+        source.DeceasedDate, source.recipientType, source.recipient, source.District, source.DistrictID, source.Mosque, 
+        source.MosqueID, source.JenisPendaftaran, source.Status, source.Statecode, source.StatusAsnaf, source.PostJson, 
+        source.ReturnJson, source.CRMAsnafID, source.PINo, source.RegType, source.CRMReviewID, source.CRMRegistrationID, 
+        source.Relationship, source.MasihTanggungan, source.recipientTypeAsnaf, source.recipientTypeOrganization, source.Ename, 
+        source.Eposition, source.Eoffice, source.Erelation, source.reviewRemarks, source.resetBy, source.healthCronic, 
+        source.OKU_Physical, source.OKU_Type, source.OKU_Cause, source.OKU_Cause_Level, source.Uzur_Condition, source.carecosts, 
+        source.monthlytotal, source.sector, source.remarkwork, source.vehicle, source.vehicleothers, source.namamajikan, 
+        source.fishermenpoultryagricultural, source.sewinghandicraftscookingnursery, source.service, source.othersskill, 
+        source.othersskillremarks, source.carpentry, source.business, source.portalID, source.regstatus, source.kadarsewa, 
+        source.amilID, source.AsnafCategory, source.ModifiedBy, source.ModifiedOn, source.hadkifayahRate, source.hadkifayah, 
+        source.SAPCode, source.SAPRemarks, source.SAPIndicator, source.Blacklisted, source.TarikhMulaKFAMKBAM
     );
-

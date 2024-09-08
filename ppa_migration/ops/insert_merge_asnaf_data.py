@@ -26,6 +26,15 @@ def insert_merge_asnaf_data(context, transformed_data):
     
     error_log = []
     
+    # Retrieve field names before executing merge operations
+    try:
+        cursor_sql.execute("SELECT TOP 1 * FROM asnaf_transformed_v4")
+        field_names = [desc[0] for desc in cursor_sql.description if desc[0].lower() != 'idno'] if cursor_sql.description else ["Unknown"]
+        context.log.info(f"Retrieved field names: {field_names}")
+    except Exception as e:
+        context.log.error(f"Error retrieving field names: {e}")
+        field_names = ["Unknown"]
+
     # Execute the merge query
     for row in transformed_data:
         try:
@@ -35,13 +44,6 @@ def insert_merge_asnaf_data(context, transformed_data):
             error_log.append(f"Error executing query for row: {row}. Error: {e}")
             continue  # Continue to the next row
 
-    # After executing all the data operations, retrieve field names if needed
-    cursor_sql.execute("SELECT TOP 1 * FROM <YourTableName>")  # Replace <YourTableName> with your actual table name
-    field_names = [desc[0] for desc in cursor_sql.description] if cursor_sql.description else ["Unknown"]
-    
-    # Log field names
-    context.log.info(f"Retrieved field names: {field_names}")
-    
     # Handle errors if any
     for row in transformed_data:
         try:
@@ -66,7 +68,7 @@ def insert_merge_asnaf_data(context, transformed_data):
     # Write errors to a log file if any
     if error_log:
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
-        error_log_file_name = f"error_insert_migrate_data_{current_datetime}.txt"
+        error_log_file_name = f"error_insert_merge_asnaf_data_{current_datetime}.txt"
         error_log_path = os.path.join(base_dir, '../logs', error_log_file_name)
         
         # Ensure the logs directory exists

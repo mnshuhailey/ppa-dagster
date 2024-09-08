@@ -1,5 +1,5 @@
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v3' AND xtype='U')
-CREATE TABLE dbo.asnaf_transformed_v3 (
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v4' AND xtype='U')
+CREATE TABLE dbo.asnaf_transformed_v4 (
     idno INT IDENTITY(1,1) NOT NULL,
     SnapshotID UNIQUEIDENTIFIER NOT NULL,
     AsnafID UNIQUEIDENTIFIER PRIMARY KEY,
@@ -49,6 +49,7 @@ CREATE TABLE dbo.asnaf_transformed_v3 (
     RegistrationType INT,
     ExitAsnafRemark NVARCHAR(MAX),
     ExitAsnafReason NVARCHAR(MAX),
+    ExitDate DATETIME,
     DeceasedDate DATETIME,
     recipientType NVARCHAR(100),
     recipient NVARCHAR(100),
