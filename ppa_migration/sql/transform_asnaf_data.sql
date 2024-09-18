@@ -1,5 +1,5 @@
 SELECT
-    (_airbyte_data->>'OwningUser')::uuid AS SnapshotID,
+    NEWID() AS SnapshotID,
     (_airbyte_data->>'vwlzs_asnafId')::uuid AS AsnafID,
     (_airbyte_data->>'vwlzs_AsnafRegistrationIdName')::text AS AsnafName,
     (_airbyte_data->>'CreatedBy')::uuid AS Createdby,
@@ -11,8 +11,9 @@ SELECT
     (_airbyte_data->>'vwlzs_Age')::int AS Age,
     (_airbyte_data->>'vwlzs_MaritalStatus')::int AS MaritalStatus,
     NULL::text AS Working,
-    (_airbyte_data->>'vwlzs_Healthlevel')::int AS Healthlevel,
-    (_airbyte_data->>'vwlzs_Condition')::int AS PhysicalCondition,
+    (_airbyte_data->>'pak_Healthlevel')::int AS Healthlevel,
+    (_airbyte_data->>'pak_OKU_Physical')::int AS PhysicalCondition,
+    (_airbyte_data->>'pak_OKU_Physical')::int AS Remarkhealthlevel,
     (_airbyte_data->>'vwlzs_BankName')::text AS Bank,
     (_airbyte_data->>'vwlzs_OtherName')::text AS OtherName,
     (_airbyte_data->>'vwlzs_nric')::text AS IdentificationNumIC,
@@ -79,7 +80,7 @@ SELECT
     (_airbyte_data->>'vwlzs_RemarkJobStatus')::text AS reviewRemarks,
     NULL::text AS resetBy,
     NULL::text AS healthCronic,
-    NULL::text AS OKU_Physical,
+    (_airbyte_data->>'pak_OKU_Physical')::text AS OKU_Physical,
     NULL::text AS OKU_Type,
     NULL::text AS OKU_Cause,
     NULL::text AS OKU_Cause_Level,
@@ -116,4 +117,5 @@ SELECT
          THEN CASE WHEN (_airbyte_data->>'vwlzs_Blacklisted')::boolean IS TRUE THEN 1 ELSE 0 END
          ELSE NULL END AS Blacklisted,
     NULL::timestamp AS TarikhMulaKFAMKBAM
-FROM airbyte_internal.dbo_raw__stream_vwlzs_asnaf;
+FROM airbyte_internal.dbo_raw__stream_vwlzs_asnaf
+LIMIT 1000;

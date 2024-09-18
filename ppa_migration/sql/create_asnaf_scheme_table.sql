@@ -1,4 +1,4 @@
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v4' AND xtype='U')
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v6' AND xtype='U')
 CREATE TABLE dbo.asnaf_transformed_v4 (
     idno INT IDENTITY(1,1) NOT NULL,
     SnapshotID UNIQUEIDENTIFIER NOT NULL,
@@ -14,6 +14,7 @@ CREATE TABLE dbo.asnaf_transformed_v4 (
     MaritalStatus INT,
     Working NVARCHAR(255),
     Healthlevel INT,
+    PhysicalCondition INT,
     PhysicalCondition INT,
     Bank NVARCHAR(100),
     OtherName NVARCHAR(255),

@@ -27,12 +27,20 @@ def postgres_db_resource(context):
 # SQL Server resource configuration
 @resource
 def sqlserver_db_resource(context):
+    # conn_str = (
+    #     "DRIVER={ODBC Driver 17 for SQL Server};"
+    #     "SERVER=10.10.1.199;"
+    #     "DATABASE=PPA;"
+    #     "UID=noor.shuhailey;"
+    #     "PWD=Lzs.user831;"
+    #     "Trust_Connection=yes;"
+    # )
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=10.10.1.199;"
-        "DATABASE=PPA;"
-        "UID=noor.shuhailey;"
-        "PWD=Lzs.user831;"
+        "SERVER=192.168.0.7;"
+        "DATABASE=Internal_Test;"
+        "UID=sa;"
+        "PWD=7UonCypPndYgyEh;"
         "Trust_Connection=yes;"
     )
     try:
