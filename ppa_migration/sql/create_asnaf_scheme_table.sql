@@ -1,5 +1,5 @@
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v6' AND xtype='U')
-CREATE TABLE dbo.asnaf_transformed_v6 (
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v7' AND xtype='U')
+CREATE TABLE dbo.asnaf_transformed_v7 (
     idno INT IDENTITY(1,1) NOT NULL,
     SnapshotID UNIQUEIDENTIFIER NOT NULL,
     AsnafID UNIQUEIDENTIFIER PRIMARY KEY,

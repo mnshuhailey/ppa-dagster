@@ -29,7 +29,7 @@ def insert_merge_asnaf_data(context, transformed_data):
     with sqlserver_conn.cursor() as cursor_sql:
         # Retrieve field names before executing merge operations
         try:
-            cursor_sql.execute("SELECT TOP 1 * FROM asnaf_transformed_v6")
+            cursor_sql.execute("SELECT TOP 1 * FROM asnaf_transformed_v7")
             field_names = [desc[0] for desc in cursor_sql.description if desc[0].lower() != 'idno'] if cursor_sql.description else ["Unknown"]
             context.log.info(f"Retrieved field names: {field_names}")
         except Exception as e:
@@ -52,7 +52,7 @@ def insert_merge_asnaf_data(context, transformed_data):
 
         # SQL query for duplicate check
         check_duplicate_query = """
-            SELECT COUNT(*) FROM asnaf_transformed_v6 
+            SELECT COUNT(*) FROM asnaf_transformed_v7 
             WHERE AsnafID = ? OR IdentificationNumIC = ?
         """
 

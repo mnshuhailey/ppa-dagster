@@ -1,0 +1,27 @@
+SELECT
+     (_airbyte_data->>'vwlzs_schoolId')::uuid AS SchoolingID,
+     (_airbyte_data->>'vwlzs_name')::text AS SchoolingName,
+     UPPER(gen_random_uuid()::text) AS SnapshotID,
+     (_airbyte_data->>'vwlzs_Asnaf')::uuid AS AsnafID,
+     (_airbyte_data->>'vwlzs_SchoolCode')::text AS Schooling,
+     NULL::uuid AS Schooling_TadikaID,
+     NULL::text AS Schooling_Kebangsaan,
+     NULL::uuid AS Schooling_KebangsaanID,
+     NULL::text AS Schooling_Agama,
+     NULL::uuid AS Schooling_AgamaID,
+     NULL::uuid AS Schooling_MenengahID,
+     NULL::uuid AS IPT_ID,
+     NULL::text AS Schooling_Tahap,
+     NULL::text AS Schooling_Datestart,
+     NULL::text AS Schooling_Dateend,
+     NULL::text AS Education,
+     NULL::text AS hadkifayah,
+     NULL::text AS hadkifayahRate,
+     NULL::text AS masihTanggungan,
+     (_airbyte_data->>'statecode')::text AS Statecode,
+     TO_CHAR((_airbyte_data->>'CreatedOn')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS CreatedOn,
+     (_airbyte_data->>'CreatedBy')::uuid AS CreatedBy,
+     TO_CHAR((_airbyte_data->>'ModifiedOn')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS ModifiedOn,
+     (_airbyte_data->>'ModifiedBy')::uuid AS ModifiedBy
+FROM airbyte_internal.dbo_raw__stream_vwlzs_school
+LIMIT 10;
