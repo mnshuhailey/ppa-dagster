@@ -1,5 +1,5 @@
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='asnaf_transformed_v6' AND xtype='U')
-CREATE TABLE dbo.asnaf_transformed_v4 (
+CREATE TABLE dbo.asnaf_transformed_v6 (
     idno INT IDENTITY(1,1) NOT NULL,
     SnapshotID UNIQUEIDENTIFIER NOT NULL,
     AsnafID UNIQUEIDENTIFIER PRIMARY KEY,
@@ -13,9 +13,6 @@ CREATE TABLE dbo.asnaf_transformed_v4 (
     Age INT,
     MaritalStatus INT,
     Working NVARCHAR(255),
-    Healthlevel INT,
-    PhysicalCondition INT,
-    PhysicalCondition INT,
     Bank NVARCHAR(100),
     OtherName NVARCHAR(255),
     IdentificationNumIC NVARCHAR(MAX),
@@ -79,6 +76,8 @@ CREATE TABLE dbo.asnaf_transformed_v4 (
     Erelation NVARCHAR(100),
     reviewRemarks NVARCHAR(MAX),
     resetBy NVARCHAR(100),
+    Healthlevel INT,
+    PhysicalCondition INT,
     healthCronic NVARCHAR(100),
     OKU_Physical NVARCHAR(100),
     OKU_Type NVARCHAR(100),

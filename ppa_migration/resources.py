@@ -37,10 +37,10 @@ def sqlserver_db_resource(context):
     # )
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=192.168.0.7;"
-        "DATABASE=Internal_Test;"
+        "SERVER=192.168.0.14;"
+        "DATABASE=Test;"
         "UID=sa;"
-        "PWD=7UonCypPndYgyEh;"
+        "PWD=123qwe;"
         "Trust_Connection=yes;"
     )
     try:
