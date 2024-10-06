@@ -16,5 +16,4 @@ SELECT
      (_airbyte_data->>'ModifiedBy')::uuid AS ModifiedBy,
      (_airbyte_data->>'statecode')::text AS Statecode,
      (_airbyte_data->>'vwlzs_AcademicStatus')::text AS Status
-FROM airbyte_internal.dbo_raw__stream_vwlzs_study
-LIMIT 10;
+FROM airbyte_internal.dbo_raw__stream_vwlzs_study;

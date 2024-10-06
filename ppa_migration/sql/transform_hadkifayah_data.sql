@@ -47,5 +47,4 @@ SELECT
      (_airbyte_data->>'CreatedBy')::uuid AS CreatedBy,
      TO_CHAR((_airbyte_data->>'ModifiedOn')::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS ModifiedOn,
      (_airbyte_data->>'ModifiedBy')::uuid AS ModifiedBy
-FROM airbyte_internal.dbo_raw__stream_vwlzs_hadkifayah
-LIMIT 10;
+FROM airbyte_internal.dbo_raw__stream_vwlzs_hadkifayah;
