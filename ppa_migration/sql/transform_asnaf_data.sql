@@ -116,5 +116,4 @@ SELECT
          THEN CASE WHEN (_airbyte_data->>'vwlzs_Blacklisted')::boolean IS TRUE THEN 1 ELSE 0 END
          ELSE NULL END AS Blacklisted,
     NULL::timestamp AS TarikhMulaKFAMKBAM
-FROM airbyte_internal.dbo_raw__stream_vwlzs_asnaf
-LIMIT 10;
+FROM airbyte_internal.dbo_raw__stream_vwlzs_asnaf;
