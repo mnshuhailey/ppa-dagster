@@ -14,5 +14,5 @@ CREATE TABLE dbo.household_transformed_v7 (
     CreatedBy UNIQUEIDENTIFIER NULL,  -- GUID for the creator
     ModifiedOn DATETIME NULL,  -- Date and time for modification
     ModifiedBy UNIQUEIDENTIFIER NULL,  -- GUID for the modifier
-    CONSTRAINT PK_Household PRIMARY KEY ([idno])  -- Primary key constraint on idno
+    PRIMARY KEY (idno)
 );
