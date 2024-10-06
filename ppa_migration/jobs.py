@@ -33,24 +33,24 @@ def ppa_migration_pipeline():
 
     # Step 2: Transform Asnaf data and insert it
     asnaf_transformed_data = transform_asnaf_data()
-    insert_merge_asnaf_data(asnaf_transformed_data)
+    insert_asnaf_op = insert_merge_asnaf_data(asnaf_transformed_data)
 
     # Step 3: Transform Familyrelationship data and insert it after Asnaf data is inserted
-    familyrelationship_transformed_data = transform_familyrelationship_data()
-    insert_familyrelationship_data(familyrelationship_transformed_data)
+    familyrelationship_transformed_data = transform_familyrelationship_data(insert_asnaf_op)
+    insert_familyrelationship_op = insert_familyrelationship_data(familyrelationship_transformed_data)
 
     # Step 4: Transform Household data and insert it after Familyrelationship data is inserted
-    household_transformed_data = transform_household_data()
-    insert_household_data(household_transformed_data)
+    household_transformed_data = transform_household_data(insert_familyrelationship_op)
+    insert_household_op = insert_household_data(household_transformed_data)
 
     # Step 5: Transform Study data and insert it after Household data is inserted
-    study_transformed_data = transform_study_data()
-    insert_study_data(study_transformed_data)
+    study_transformed_data = transform_study_data(insert_household_op)
+    insert_study_op = insert_study_data(study_transformed_data)
 
     # Step 5: Transform School data and insert it after Study data is inserted
-    school_transformed_data = transform_school_data()
-    insert_school_data(school_transformed_data)
+    school_transformed_data = transform_school_data(insert_study_op)
+    insert_school_op = insert_school_data(school_transformed_data)
 
     # Step 6: Transform Hadkifayah data and insert it after School data is inserted
-    hadkifayah_transformed_data = transform_hadkifayah_data()
+    hadkifayah_transformed_data = transform_hadkifayah_data(insert_school_op)
     insert_hadkifayah_data(hadkifayah_transformed_data)

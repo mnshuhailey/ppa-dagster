@@ -1,12 +1,12 @@
 import os
-from dagster import op, Out, Output
+from dagster import op, In, Out, Output, Nothing
 from ppa_migration.resources import postgres_db_resource
 
 def read_sql_file(file_path):
     with open(file_path, 'r') as file:
         return file.read()
 
-@op(required_resource_keys={"postgres_db"}, out=Out(list))
+@op(ins={"after_insert_household_data": In(Nothing)}, required_resource_keys={"postgres_db"}, out=Out(list))
 def transform_study_data(context):
     base_dir = os.path.dirname(os.path.realpath(__file__))
     fetch_data_query_path = os.path.join(base_dir, '../sql/transform_study_data.sql')
