@@ -1,4 +1,4 @@
-MERGE INTO dbo.study_transformed_v7 AS target
+MERGE INTO dbo.Study AS target
 USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))
 AS source (
     StudyID, SnapshotID, StudyName, Education, EducationType, AcademicStartDate, AcademicEndDate, 

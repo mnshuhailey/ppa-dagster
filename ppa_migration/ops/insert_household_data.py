@@ -4,11 +4,33 @@ from dagster import op, In
 from ppa_migration.resources import sqlserver_db_resource
 
 def read_sql_file(file_path):
+    """Reads a SQL file from the given path."""
     with open(file_path, 'r') as file:
         return file.read()
 
+# Helper function to split lists into batches
+def chunked_list(input_list, chunk_size):
+    """Splits a list into smaller chunks."""
+    for i in range(0, len(input_list), chunk_size):
+        yield input_list[i:i + chunk_size]
+
+def fetch_running_no(cursor_sql, context):
+    """Fetch prefix, year, and running_no from RunningNo table where idno is 2."""
+    cursor_sql.execute("SELECT prefix, year, running_no FROM RunningNo WHERE idno = 2")
+    result = cursor_sql.fetchone()
+    if result:
+        return result  # prefix, year, running_no
+    else:
+        raise Exception("Unable to fetch the running_no from RunningNo table.")
+
+def update_running_no(cursor_sql, new_running_no, context):
+    """Update the running_no in the RunningNo table where idno is 2."""
+    cursor_sql.execute("UPDATE RunningNo SET running_no = ? WHERE idno = 2", (new_running_no,))
+    context.log.info(f"Updated running_no to {new_running_no} in RunningNo table.")
+
 @op(required_resource_keys={"sqlserver_db"}, ins={"transformed_data": In(list)})
 def insert_household_data(context, transformed_data):
+    """Insert household data into SQL Server."""
     if not transformed_data:
         context.log.warning("No data to insert or merge.")
         return
@@ -20,45 +42,88 @@ def insert_household_data(context, transformed_data):
     merge_data_query = read_sql_file(merge_data_query_path)
 
     sqlserver_conn = context.resources.sqlserver_db
-    context.log.info("Inserting or merging data into SQL Server.")
+    context.log.info("Starting data insertion into SQL Server.")
     
     error_log = []
-    duplicate_log = []
-    successful_inserts = False  # Flag to track if any rows were inserted
+    batch_size = 5000  # Process data in smaller batches
+    param_chunk_size = 2000  # Limit parameter chunk size to avoid SQL Server errors
+    total_inserted = 0  # Track total rows inserted
 
     with sqlserver_conn.cursor() as cursor_sql:
-        # Step 1: Retrieve field names before executing merge operations
-        try:
-            cursor_sql.execute("SELECT TOP 1 * FROM household_transformed_v7")
-            field_names = [desc[0] for desc in cursor_sql.description if desc[0].lower() != 'idno'] if cursor_sql.description else ["Unknown"]
-            context.log.info(f"Retrieved field names: {field_names}")
-        except Exception as e:
-            context.log.error(f"Error retrieving field names: {e}")
-            field_names = ["Unknown"]
+        prefix, year, running_no = fetch_running_no(cursor_sql, context)
 
-        # Step 2: assign to each row
-        for index, row in enumerate(transformed_data):
-            context.log.info(f"Processing row {index+1}: {row}")
- 
+        # Collect all AsnafIDs
+        all_asnaf_ids = [row[5] for row in transformed_data if row[5]]
+        asnaf_snapshot_map = {}
+
+        # Fetch SnapshotIDs in batches
+        if all_asnaf_ids:
             try:
-                cursor_sql.execute(merge_data_query, row)
-                successful_inserts = True  # Mark that at least one row was inserted successfully
+                for asnaf_id_chunk in chunked_list(all_asnaf_ids, param_chunk_size):
+                    cursor_sql.execute(
+                        f"""
+                        SELECT UPPER(AsnafID), CONVERT(UNIQUEIDENTIFIER, SnapshotID) 
+                        FROM asnaf 
+                        WHERE AsnafID IN ({",".join(["?"] * len(asnaf_id_chunk))})
+                        """,
+                        asnaf_id_chunk
+                    )
+                    snapshot_results = cursor_sql.fetchall()
+                    asnaf_snapshot_map.update({row[0]: row[1] for row in snapshot_results})
+
             except Exception as e:
-                context.log.error(f"Error executing query for row: {row}. Error: {e}")
-                error_log.append(f"Error executing query for row: {row}. Error: {e}")
-                continue  # Continue to the next row
+                context.log.error(f"Error fetching SnapshotIDs: {e}")
+                return
 
-        # Commit the data insertions if no errors occurred
-        if not error_log and successful_inserts:
-            sqlserver_conn.commit()
-            context.log.info("Data transfer to SQL Server completed successfully.")
-        else:
-            context.log.warning("Data transfer completed with errors or duplicates. Check the log for details.")
+        # Process and insert data in batches
+        for data_batch in chunked_list(transformed_data, batch_size):
+            try:
+                updated_data_batch = []
+                for row in data_batch:
+                    asnaf_id = str(row[5]).upper()  # Assuming row[5] contains AsnafID
 
-    # Write logs
+                    # Get SnapshotID for the corresponding AsnafID or NULL if not found
+                    snapshot_id = asnaf_snapshot_map.get(asnaf_id, None)
+
+                    # Replace row[1] with SnapshotID or NULL if not found
+                    updated_row = row[:1] + (snapshot_id,) + row[2:]
+
+                    # Generate new value for row[2]
+                    new_value = f"{prefix}-{year}-{str(running_no).zfill(8)}"
+                    updated_row = updated_row[:2] + (new_value,) + updated_row[3:]
+
+                    # Increment the running number
+                    running_no += 1
+
+                    # Add the updated row to the batch
+                    updated_data_batch.append(updated_row)
+
+                # Insert the batch of data into SQL Server
+                cursor_sql.executemany(merge_data_query, updated_data_batch)
+                sqlserver_conn.commit()
+                total_inserted += len(updated_data_batch)
+                context.log.info(f"Inserted {len(updated_data_batch)} rows successfully.")
+
+            except Exception as e:
+                context.log.error(f"Error executing batch insert: {e}")
+                for row in data_batch:
+                    error_log.append(f"Error inserting row: {row}. Error: {e}")
+
+    # After processing all rows, update the running_no in RunningNo table
+    with sqlserver_conn.cursor() as cursor_sql:
+        update_running_no(cursor_sql, running_no, context)
+
+    # Log total inserts and errors if any
+    if total_inserted > 0:
+        context.log.info(f"Data transfer to SQL Server completed successfully. Total rows inserted: {total_inserted}")
+    else:
+        context.log.warning("Data transfer completed with errors. Check the error log for details.")
+
+    # Write error logs if necessary
     write_log_file(context, error_log, 'error_insert_household_data', base_dir)
 
 def write_log_file(context, log_entries, log_name, base_dir):
+    """Write error logs to a file."""
     if log_entries:
         current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
         log_file_name = f"{log_name}_{current_datetime}.txt"

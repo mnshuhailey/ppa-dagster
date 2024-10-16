@@ -1,4 +1,4 @@
-MERGE INTO dbo.household_transformed_v7 AS target
+MERGE INTO dbo.Household AS target
 USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))
 AS source (
     HouseholdID, SnapshotID, HouseholdName, Status, Statecode, HeadofFamilyId, Branch, 

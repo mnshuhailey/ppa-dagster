@@ -7,6 +7,27 @@ def read_sql_file(file_path):
     with open(file_path, 'r') as file:
         return file.read()
 
+# Helper function to split lists into batches
+def chunked_list(input_list, chunk_size):
+    for i in range(0, len(input_list), chunk_size):
+        yield input_list[i:i + chunk_size]
+
+# Function to fetch the current prefix, year, and running_no from RunningNo table
+def get_running_no(cursor_sql, context):
+    cursor_sql.execute("SELECT prefix, year, running_no FROM RunningNo WHERE idno = 8")
+    result = cursor_sql.fetchone()
+    if result:
+        prefix, year, running_no = result
+        context.log.info(f"Fetched running_no: {running_no}, prefix: {prefix}, year: {year}")
+        return prefix, year, running_no
+    else:
+        raise Exception("Unable to fetch the running_no from RunningNo table.")
+
+# Function to update the running_no in the RunningNo table
+def update_running_no(cursor_sql, new_running_no, context):
+    cursor_sql.execute("UPDATE RunningNo SET running_no = ? WHERE idno = 8", (new_running_no,))
+    context.log.info(f"Updated running_no to {new_running_no} in RunningNo table.")
+
 @op(required_resource_keys={"sqlserver_db"}, ins={"transformed_data": In(list)})
 def insert_school_data(context, transformed_data):
     if not transformed_data:
@@ -20,42 +41,50 @@ def insert_school_data(context, transformed_data):
     merge_data_query = read_sql_file(merge_data_query_path)
 
     sqlserver_conn = context.resources.sqlserver_db
-    context.log.info("Inserting or merging data into SQL Server.")
+    context.log.info("Starting data insertion/merging into SQL Server.")
     
     error_log = []
-    duplicate_log = []
-    successful_inserts = False  # Flag to track if any rows were inserted
+    batch_size = 1000  # Define batch size for processing data in chunks
+    successful_inserts = False
+    total_inserted = 0
 
     with sqlserver_conn.cursor() as cursor_sql:
-        # Step 1: Retrieve field names before executing merge operations
-        try:
-            cursor_sql.execute("SELECT TOP 1 * FROM school_transformed_v7")
-            field_names = [desc[0] for desc in cursor_sql.description if desc[0].lower() != 'idno'] if cursor_sql.description else ["Unknown"]
-            context.log.info(f"Retrieved field names: {field_names}")
-        except Exception as e:
-            context.log.error(f"Error retrieving field names: {e}")
-            field_names = ["Unknown"]
+        # Fetch current prefix, year, and running_no from RunningNo table
+        prefix, year, running_no = get_running_no(cursor_sql, context)
 
-        # Step 2: assign to each row
-        for index, row in enumerate(transformed_data):
-            context.log.info(f"Processing row {index+1}: {row}")
- 
+        for data_batch in chunked_list(transformed_data, batch_size):
+            updated_data_batch = []
             try:
-                cursor_sql.execute(merge_data_query, row)
-                successful_inserts = True  # Mark that at least one row was inserted successfully
+                for row in data_batch:
+                    # Generate new value for row[1] in the format prefix-year-latest_running_no
+                    new_value = f"{prefix}-{year}-{str(running_no).zfill(8)}"
+                    updated_row = (row[0], new_value) + row[2:]  # Update row[1] with new value
+                    updated_data_batch.append(updated_row)
+                    
+                    # Increment running_no for each row
+                    running_no += 1
+
+                # Insert the batch of data into the School table
+                if updated_data_batch:
+                    cursor_sql.executemany(merge_data_query, updated_data_batch)
+                    sqlserver_conn.commit()
+                    total_inserted += len(updated_data_batch)
+                    context.log.debug(f"Inserted {len(updated_data_batch)} rows successfully.")
+
             except Exception as e:
-                context.log.error(f"Error executing query for row: {row}. Error: {e}")
-                error_log.append(f"Error executing query for row: {row}. Error: {e}")
-                continue  # Continue to the next row
+                context.log.error(f"Error executing batch insert. Error: {e}")
+                error_log.extend([f"Error inserting row: {row}. Error: {e}" for row in data_batch])
 
-        # Commit the data insertions if no errors occurred
-        if not error_log and successful_inserts:
-            sqlserver_conn.commit()
-            context.log.info("Data transfer to SQL Server completed successfully.")
-        else:
-            context.log.warning("Data transfer completed with errors or duplicates. Check the log for details.")
+        # Update the latest running_no in the RunningNo table
+        update_running_no(cursor_sql, running_no, context)
 
-    # Write logs
+    if total_inserted > 0:
+        context.log.info(f"Data transfer to SQL Server completed successfully. Total rows inserted: {total_inserted}")
+        successful_inserts = True
+    else:
+        context.log.warning("Data transfer completed with errors. Check the error log for details.")
+
+    # Write logs if there were any errors
     write_log_file(context, error_log, 'error_insert_school_data', base_dir)
 
 def write_log_file(context, log_entries, log_name, base_dir):

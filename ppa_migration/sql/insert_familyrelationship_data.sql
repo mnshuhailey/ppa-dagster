@@ -1,4 +1,4 @@
-MERGE INTO dbo.familyrelationship_transformed_v7 AS target
+MERGE INTO dbo.Familyrelationship AS target
 USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))
 AS source (
     FamilyrelationshipID, SnapshotID, FamilyrelationshipName, Status, Statecode, Relationship, 

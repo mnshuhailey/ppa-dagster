@@ -1,12 +1,12 @@
 import os
-from dagster import op
+from dagster import op, In, Nothing
 from ppa_migration.resources import sqlserver_db_resource
 
 def read_sql_file(file_path):
     with open(file_path, 'r') as file:
         return file.read()
 
-@op(required_resource_keys={"sqlserver_db"})
+@op(ins={"after_create_asnaf": In(Nothing)}, required_resource_keys={"sqlserver_db"})
 def create_school_scheme_table(context):
     base_dir = os.path.dirname(os.path.realpath(__file__))
     sql_file_path = os.path.join(base_dir, '../sql/create_school_scheme_table.sql')

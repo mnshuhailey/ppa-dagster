@@ -1,4 +1,4 @@
-MERGE INTO dbo.school_transformed_v7 AS target
+MERGE INTO dbo.School AS target
 USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))
 AS source (
     SchoolingID, SchoolingName, SnapshotID, AsnafID, Schooling, Schooling_TadikaID, 

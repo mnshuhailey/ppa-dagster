@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 from dagster import op, In
 from ppa_migration.resources import sqlserver_db_resource
@@ -6,6 +7,58 @@ from ppa_migration.resources import sqlserver_db_resource
 def read_sql_file(file_path):
     with open(file_path, 'r') as file:
         return file.read()
+
+# Helper function to split lists into batches
+def chunked_list(input_list, chunk_size):
+    for i in range(0, len(input_list), chunk_size):
+        yield input_list[i:i + chunk_size]
+
+def get_latest_running_no(cursor_sql, context):
+    cursor_sql.execute("SELECT prefix, year, running_no FROM RunningNo WHERE idno = 5")
+    result = cursor_sql.fetchone()
+    if result:
+        prefix, year, running_no = result
+        context.log.info(f"Fetched running_no: {running_no}, prefix: {prefix}, year: {year}")
+        return prefix, year, running_no
+    else:
+        raise Exception("Unable to fetch the running_no from RunningNo table.")
+
+def update_running_no(cursor_sql, new_running_no, context):
+    cursor_sql.execute("UPDATE RunningNo SET running_no = ? WHERE idno = 5", (new_running_no,))
+    context.log.info(f"Updated running_no to {new_running_no} in RunningNo table.")
+
+def get_latest_running_no_mig(cursor_sql, context):
+    cursor_sql.execute("SELECT prefix, year, running_no FROM RunningNo WHERE idno = 10")
+    result = cursor_sql.fetchone()
+    if result:
+        prefix, year, running_no = result
+        context.log.info(f"Fetched running_no_mig: {running_no}, prefix: {prefix}, year: {year}")
+        return prefix, year, running_no
+    else:
+        raise Exception("Unable to fetch the running_no_mig from RunningNo table.")
+
+def update_running_no_mig(cursor_sql, new_running_no, context):
+    cursor_sql.execute("UPDATE RunningNo SET running_no = ? WHERE idno = 10", (new_running_no,))
+    context.log.info(f"Updated running_no_mig to {new_running_no} in RunningNo table.")
+
+def check_for_duplicates(cursor_sql, ids_chunk, column_name, context):
+    """
+    Check for duplicates in the SQL table based on provided IDs and column name.
+    This function processes chunks of IDs at a time.
+    """
+    duplicate_dict = {}
+    try:
+        # Ensure we don't generate an empty "IN" clause
+        if ids_chunk:
+            query = f"SELECT {column_name} FROM asnaf WHERE {column_name} IN ({','.join(['?'] * len(ids_chunk))})"
+            cursor_sql.execute(query, ids_chunk)
+            duplicates = cursor_sql.fetchall()
+            # Update duplicate_dict with results
+            duplicate_dict.update({d[0]: True for d in duplicates})
+
+    except Exception as e:
+        context.log.error(f"Error checking for duplicates: {e}")
+    return duplicate_dict
 
 @op(required_resource_keys={"sqlserver_db"}, ins={"transformed_data": In(list)})
 def insert_merge_asnaf_data(context, transformed_data):
@@ -15,102 +68,117 @@ def insert_merge_asnaf_data(context, transformed_data):
 
     base_dir = os.path.dirname(os.path.realpath(__file__))
     merge_data_query_path = os.path.join(base_dir, '../sql/insert_merge_asnaf_data.sql')
+    insert_snapshot_query_path = os.path.join(base_dir, '../sql/insert_snapshot_data.sql')
     
-    # Load SQL query from file
+    # Load SQL queries from files
     merge_data_query = read_sql_file(merge_data_query_path)
+    insert_snapshot_query = read_sql_file(insert_snapshot_query_path)
 
     sqlserver_conn = context.resources.sqlserver_db
-    context.log.info("Inserting or merging data into SQL Server.")
+    context.log.info("Starting data insertion or merging into SQL Server.")
     
     error_log = []
     duplicate_log = []
-    successful_inserts = False  # Flag to track if any rows were inserted
+    successful_inserts = False
+    total_inserted = 0  # Track total rows inserted
+
+    batch_size = 1000
 
     with sqlserver_conn.cursor() as cursor_sql:
-        # Retrieve field names before executing merge operations
-        try:
-            cursor_sql.execute("SELECT TOP 1 * FROM asnaf_transformed_v7")
-            field_names = [desc[0] for desc in cursor_sql.description if desc[0].lower() != 'idno'] if cursor_sql.description else ["Unknown"]
-            context.log.info(f"Retrieved field names: {field_names}")
-        except Exception as e:
-            context.log.error(f"Error retrieving field names: {e}")
-            field_names = ["Unknown"]
+        asnaf_ids = [row[1] for row in transformed_data]
+        identification_num_ics = [row[14] for row in transformed_data]
 
-        # Step 1: Fetch the latest running_no from the RunningNo table where idno is 10
-        try:
-            cursor_sql.execute("SELECT TOP 1 prefix, year, running_no FROM RunningNo WHERE idno = 10 ORDER BY running_no DESC")
-            result = cursor_sql.fetchone()
-            if result:
-                prefix, year, latest_running_number = result
-                context.log.info(f"Latest data fetched - Prefix: {prefix}, Year: {year}, Running Number: {latest_running_number}")
-            else:
-                context.log.error("No data found in RunningNo for idno = 10")
-                return
-        except Exception as e:
-            context.log.error(f"Error fetching latest running number: {e}")
-            return
+        # Retrieve latest running number for Snapshot and AsnafName
+        prefix_snapshot, year_snapshot, running_no_snapshot = get_latest_running_no(cursor_sql, context)
+        prefix_mig, year_mig, running_no_mig = get_latest_running_no_mig(cursor_sql, context)
 
-        # SQL query for duplicate check
-        check_duplicate_query = """
-            SELECT COUNT(*) FROM asnaf_transformed_v7 
-            WHERE AsnafID = ? OR IdentificationNumIC = ?
-        """
+        # Step 1: Check for duplicates for asnaf_ids
+        duplicate_asnaf_ids = {}
+        for asnaf_id_chunk in chunked_list(asnaf_ids, 2000):
+            duplicate_asnaf_ids.update(check_for_duplicates(cursor_sql, asnaf_id_chunk, "AsnafID", context))
 
-        # Step 2: Increment the running number and assign to each row
-        for index, row in enumerate(transformed_data):
-            context.log.info(f"Processing row: {row}")
-            
-            asnaf_id = row[1]
-            identification_num_ic = row[14]
+        # Step 2: Check for duplicates for identification_num_ics
+        duplicate_identification_ics = {}
+        for id_ic_chunk in chunked_list(identification_num_ics, 2000):
+            duplicate_identification_ics.update(check_for_duplicates(cursor_sql, id_ic_chunk, "IdentificationNumIC", context))
 
-            # Check for duplicates
-            cursor_sql.execute(check_duplicate_query, (asnaf_id, identification_num_ic))
-            duplicate_count = cursor_sql.fetchone()[0]
-            
-            if duplicate_count > 0:
-                duplicate_type = "AsnafID" if asnaf_id else "IdentificationNumIC"
-                log_entry = f"Duplicate found for {duplicate_type}: {asnaf_id if asnaf_id else identification_num_ic} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        # Combine the duplicates from both checks
+        duplicate_dict = {**duplicate_asnaf_ids, **duplicate_identification_ics}
+
+        # Step 3: Insert or merge non-duplicate data in batches
+        batch_data = []
+        for row in transformed_data:
+            asnaf_id, identification_num_ic = row[1], row[14]
+
+            if asnaf_id in duplicate_dict or identification_num_ic in duplicate_dict:
+                log_entry = f"Duplicate found: {asnaf_id if asnaf_id else identification_num_ic} at {datetime.now()}"
                 duplicate_log.append(log_entry)
                 context.log.info(log_entry)
-                continue  # Skip to the next row
+                continue
 
-            # Step 3: Assign a new running number and insert data
-            latest_running_number += 1  # Increment the running number
-            running_number_formatted = f"{prefix}-{year}-{str(latest_running_number).zfill(8)}"  # Format as 'prefix-year-00000000'
-            row = list(row)
-            row[2] = running_number_formatted  # Assign the formatted running number to the third column (index 2)
+            # Generate SnapshotID and AsnafName
+            snapshot_id = str(uuid.uuid4()).upper()
+            snapshot_name = f"{prefix_snapshot}-{year_snapshot}-{str(running_no_snapshot).zfill(8)}"  # Generate Snapshot Name
+            running_no_snapshot += 1  # Increment Snapshot running number
+
+            # Generate new AsnafName using get_latest_running_no_mig and increment running_no_mig
+            asnaf_name = f"{prefix_mig}-{year_mig}-{str(running_no_mig).zfill(8)}"  # Assign AsnafName
+            running_no_mig += 1  # Increment MIG running number for the next AsnafName
+
             try:
-                cursor_sql.execute(merge_data_query, row)
-                successful_inserts = True  # Mark that at least one row was inserted successfully
+                # Insert Snapshot data using a new cursor to avoid the "busy connection" issue
+                with sqlserver_conn.cursor() as snapshot_cursor:
+                    snapshot_data = (
+                        snapshot_id,
+                        snapshot_name,
+                        'ASNAFREGISTRATION',  # Static value
+                        datetime.now(),  # CreatedOn
+                        '00000000-0000-0000-0000-000000000000',  # CreatedBy
+                        'lulus'  # Status
+                    )
+                    snapshot_cursor.execute(insert_snapshot_query, snapshot_data)
+                
+                # Assign the new AsnafName in row[2] and replace SnapshotID in row[0]
+                new_row = (snapshot_id,) + row[1:2] + (asnaf_name,) + row[3:]  # Replace row[0] (SnapshotID) and row[2] (AsnafName)
+                batch_data.append(tuple(new_row))
             except Exception as e:
-                context.log.error(f"Error executing query for row: {row}. Error: {e}")
-                error_log.append(f"Error executing query for row: {row}. Error: {e}")
-                continue  # Continue to the next row
+                context.log.error(f"Error inserting snapshot: {e}")
+                error_log.append(f"Error inserting snapshot: {e}")
+                continue
 
-        # Commit the data insertions if no errors occurred
-        if not error_log and successful_inserts:
-            sqlserver_conn.commit()
-            context.log.info("Data transfer to SQL Server completed successfully.")
-        else:
-            context.log.warning("Data transfer completed with errors or duplicates. Check the log for details.")
+            # Insert the batch if batch size is reached
+            if len(batch_data) >= batch_size:
+                try:
+                    cursor_sql.executemany(merge_data_query, batch_data)
+                    successful_inserts = True
+                    context.log.info(f"Inserted {len(batch_data)} rows successfully.")
+                    batch_data.clear()  # Clear batch data for next batch
+                except Exception as e:
+                    context.log.error(f"Error inserting batch: {e}")
+                    error_log.append(f"Error inserting batch: {e}")
+                    batch_data.clear()
 
-    # Step 4: Update the RunningNo table with the new latest running number only if there were successful inserts
-    if successful_inserts:
-        try:
-            with sqlserver_conn.cursor() as cursor_sql:
-                update_running_no_query = """
-                    UPDATE RunningNo SET running_no = ?
-                    WHERE idno = 10
-                """
-                cursor_sql.execute(update_running_no_query, (latest_running_number,))
+        # Step 4: Insert remaining rows
+        if batch_data:
+            try:
+                cursor_sql.executemany(merge_data_query, batch_data)
                 sqlserver_conn.commit()
-                context.log.info(f"Running number updated to {latest_running_number} for idno = 10.")
-        except Exception as e:
-            context.log.error(f"Error updating RunningNo table: {e}")
-    else:
-        context.log.info("No new records were inserted, so running number was not updated.")
+                total_inserted += len(batch_data)
+                context.log.info(f"Inserted {len(batch_data)} remaining rows successfully.")
+            except Exception as e:
+                context.log.error(f"Error inserting remaining batch: {e}")
+                error_log.append(f"Error inserting remaining batch: {e}")
 
-    # Write logs
+        # Update running numbers
+        update_running_no(cursor_sql, running_no_snapshot, context)
+        update_running_no_mig(cursor_sql, running_no_mig, context)
+
+    if successful_inserts:
+        context.log.info(f"Data transfer to SQL Server completed successfully. Total rows inserted: {total_inserted}")
+    else:
+        context.log.warning("Data transfer completed with errors. Check the error log for details.")
+
+    # Step 5: Write logs
     write_log_file(context, error_log, 'error_insert_merge_asnaf_data', base_dir)
     write_log_file(context, duplicate_log, 'duplicate_asnaf_log', base_dir)
 
@@ -120,10 +188,8 @@ def write_log_file(context, log_entries, log_name, base_dir):
         log_file_name = f"{log_name}_{current_datetime}.txt"
         log_file_path = os.path.join(base_dir, '../logs', log_file_name)
         
-        # Ensure the logs directory exists
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-        # Write log to the file
         with open(log_file_path, 'a') as log_file:
             log_file.write("\n".join(log_entries) + "\n")
         context.log.info(f"Log written to {log_file_path}.")
