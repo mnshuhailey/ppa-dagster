@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from dagster import op, In
 from ppa_migration.resources import sqlserver_db_resource
+import uuid
 
 def read_sql_file(file_path):
     """Reads a SQL file from the given path."""
@@ -19,6 +20,7 @@ def fetch_running_no(cursor_sql, context):
     cursor_sql.execute("SELECT prefix, year, running_no FROM RunningNo WHERE idno = 9")
     result = cursor_sql.fetchone()
     if result:
+        context.log.info(f"Fetched running_no: {result[2]}, prefix: {result[0]}, year: {result[1]}")
         return result  # prefix, year, running_no
     else:
         raise Exception("Unable to fetch the running_no from RunningNo table.")
@@ -37,7 +39,7 @@ def insert_hadkifayah_data(context, transformed_data):
 
     base_dir = os.path.dirname(os.path.realpath(__file__))
     merge_data_query_path = os.path.join(base_dir, '../sql/insert_hadkifayah_data.sql')
-    
+
     # Load SQL query from file
     merge_data_query = read_sql_file(merge_data_query_path)
 
@@ -53,7 +55,7 @@ def insert_hadkifayah_data(context, transformed_data):
         prefix, year, running_no = fetch_running_no(cursor_sql, context)
 
         # Collect all AsnafIDs
-        all_asnaf_ids = [row[42] for row in transformed_data if row[42]]
+        all_asnaf_ids = [row[42] for row in transformed_data if row[42]]  # Assuming row[42] contains AsnafID
         asnaf_snapshot_map = {}
 
         # Fetch SnapshotIDs in batches
@@ -102,6 +104,13 @@ def insert_hadkifayah_data(context, transformed_data):
             try:
                 updated_data_batch = []
                 for row in data_batch:
+                    # Convert tuple to list for mutable operations
+                    row = list(row)
+
+                    # Ensure hadkifayahID is not null (assign a new one if missing)
+                    if not row[0]:  # Assuming row[0] is hadkifayahID
+                        row[0] = str(uuid.uuid4())  # Assign a new UUID if hadkifayahID is missing
+
                     asnaf_id = str(row[42]).upper()  # Assuming row[42] contains AsnafID
 
                     # Get SnapshotID for the corresponding AsnafID or skip if null/empty
@@ -121,20 +130,17 @@ def insert_hadkifayah_data(context, transformed_data):
                             continue  # Skip row if HouseholdID not found
 
                     # Replace row[1] with SnapshotID
-                    updated_row = row[:1] + (snapshot_id,) + row[2:]
-
-                    # Assign the updated HouseholdID to row[39]
-                    updated_row = updated_row[:39] + (row[39],) + updated_row[40:]
+                    row[1] = snapshot_id
 
                     # Generate new value for row[2]
                     new_value = f"{prefix}-{year}-{str(running_no).zfill(8)}"
-                    updated_row = updated_row[:2] + (new_value,) + updated_row[3:]
+                    row[2] = new_value
 
                     # Increment the running number
                     running_no += 1
 
-                    # Add the updated row to the batch
-                    updated_data_batch.append(updated_row)
+                    # Convert the row back to a tuple and add it to the batch
+                    updated_data_batch.append(tuple(row))
 
                 # Insert the batch of data into SQL Server
                 cursor_sql.executemany(merge_data_query, updated_data_batch)
@@ -142,14 +148,13 @@ def insert_hadkifayah_data(context, transformed_data):
                 total_inserted += len(updated_data_batch)
                 context.log.info(f"Inserted {len(updated_data_batch)} rows successfully.")
 
+                # Update the running number after each batch
+                update_running_no(cursor_sql, running_no, context)
+
             except Exception as e:
                 context.log.error(f"Error executing batch insert: {e}")
                 for row in data_batch:
                     error_log.append(f"Error inserting row: {row}. Error: {e}")
-
-    # After processing all rows, update the running_no in RunningNo table
-    with sqlserver_conn.cursor() as cursor_sql:
-        update_running_no(cursor_sql, running_no, context)
 
     # Log total inserts and errors if any
     if total_inserted > 0:

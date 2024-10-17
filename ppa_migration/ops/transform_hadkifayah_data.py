@@ -7,6 +7,7 @@ def read_sql_file(file_path):
         return file.read()
 
 @op(ins={"after_insert_study_data": In(Nothing)}, required_resource_keys={"postgres_db"}, out=Out(list))
+# @op(required_resource_keys={"postgres_db"}, out=Out(list))
 def transform_hadkifayah_data(context):
     base_dir = os.path.dirname(os.path.realpath(__file__))
     fetch_data_query_path = os.path.join(base_dir, '../sql/transform_hadkifayah_data.sql')

@@ -36,11 +36,11 @@ def ppa_migration_pipeline():
     create_familyrelationship = create_familyrelationship_scheme_table(create_study)
     create_hadkifayah = create_hadkifayah_scheme_table(create_familyrelationship)
 
-    # Step 2: Transform and insert Asnaf data
+    # # Step 2: Transform and insert Asnaf data
     asnaf_transformed_data = transform_asnaf_data(create_hadkifayah)
     insert_asnaf_op = insert_merge_asnaf_data(asnaf_transformed_data)
 
-    # Step 3: Transform and insert Household data
+    # # Step 3: Transform and insert Household data
     household_transformed_data = transform_household_data(insert_asnaf_op)
     insert_household_op = insert_household_data(household_transformed_data)
 
@@ -51,15 +51,15 @@ def ppa_migration_pipeline():
     # Step 5: Update Household SnapshotID using Familyrelationship SnapshotID
     update_household_op = update_household_snapshotid(insert_familyrelationship_op)
 
-    # Step 6: Transform and insert School data
+    # # Step 6: Transform and insert School data
     school_transformed_data = transform_school_data(update_household_op)
     insert_school_op = insert_school_data(school_transformed_data)
 
-    # Step 7: Transform and insert Study data
+    # # Step 7: Transform and insert Study data
     study_transformed_data = transform_study_data(insert_school_op)
     insert_study_op = insert_study_data(study_transformed_data)
 
-    # Step 8: Transform and insert Hadkifayah data
+    # # Step 8: Transform and insert Hadkifayah data
     hadkifayah_transformed_data = transform_hadkifayah_data(insert_study_op)
     insert_hadkifayah_op = insert_hadkifayah_data(hadkifayah_transformed_data)
 

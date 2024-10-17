@@ -52,8 +52,8 @@
 -- LIMIT 100000;
 
 SELECT
-     NULL::uuid AS "SnapshotID",
      "vwlzs_hadkifayahId"::uuid AS "hadkifayahID",
+     NULL::uuid AS "SnapshotID",
      "vwlzs_name"::text AS "hadkifayahName",
      NULL::text AS "Status", 
      "statecode"::text AS "Statecode",
