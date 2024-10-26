@@ -1,0 +1,2 @@
+Error inserting batch: ('The SQL contains 111 parameter markers, but 112 parameters were supplied', 'HY000')
+Error inserting batch: ('The SQL contains 111 parameter markers, but 112 parameters were supplied', 'HY000')
